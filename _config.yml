@@ -85,3 +85,4 @@ theme: next
 deploy:
   type: git
   repo: git@github.com:Blacate/blog.git
+  branch: gh-pages
