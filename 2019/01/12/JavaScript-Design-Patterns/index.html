@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.6.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.6.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="前几天把《JavaScript设计模式与开发实践》啃完了，整理顺便复习一下～">
+<meta name="keywords" content="JavaScript,Design-Patterns">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JavaScript设计模式">
+<meta property="og:url" content="https://blog.neail.xyz/2019/01/12/JavaScript-Design-Patterns/index.html">
+<meta property="og:site_name" content="Neail&#39;s island">
+<meta property="og:description" content="前几天把《JavaScript设计模式与开发实践》啃完了，整理顺便复习一下～">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-12-06T11:50:52.069Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="JavaScript设计模式">
+<meta name="twitter:description" content="前几天把《JavaScript设计模式与开发实践》啃完了，整理顺便复习一下～">
+
+
+
+
+
+
+  <link rel="canonical" href="https://blog.neail.xyz/2019/01/12/JavaScript-Design-Patterns/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>JavaScript设计模式 | Neail's island</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion .logo-line-before i { left: initial; }
+    .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Neail's island</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://blog.neail.xyz/2019/01/12/JavaScript-Design-Patterns/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Neail">
+      <meta itemprop="description" content="Everything will be ok.">
+      <meta itemprop="image" content="/uploads/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Neail's island">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">JavaScript设计模式
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-01-12 15:08:04" itemprop="dateCreated datePublished" datetime="2019-01-12T15:08:04+08:00">2019-01-12</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2019-12-06 19:50:52" itemprop="dateModified" datetime="2019-12-06T19:50:52+08:00">2019-12-06</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/JavaScript/" itemprop="url" rel="index"><span itemprop="name">JavaScript</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2019/01/12/JavaScript-Design-Patterns/#comments" itemprop="discussionUrl">
+                
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2019/01/12/JavaScript-Design-Patterns/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>前几天把《JavaScript设计模式与开发实践》啃完了，整理顺便复习一下～</p>
+<a id="more"></a>
+<h3 id="单例模式"><a href="#单例模式" class="headerlink" title="单例模式"></a>单例模式</h3><blockquote>
+<p>保证一个类只有一个实例，并提供一个访问它的全局访问点。</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Singleton</span> </span>&#123;</span><br><span class="line">  <span class="keyword">constructor</span>(name) &#123;</span><br><span class="line">    <span class="keyword">this</span>.name = name</span><br><span class="line">    <span class="keyword">this</span>.instance = <span class="literal">null</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  getName() &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span>.name</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">static</span> getInstance(name) &#123;</span><br><span class="line">    <span class="keyword">if</span> (!<span class="keyword">this</span>.instance) &#123;</span><br><span class="line">      <span class="keyword">this</span>.instance = <span class="keyword">new</span> Singleton(name)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">this</span>.instance</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> instanceA = Singleton.getInstance(<span class="string">'nameA'</span>)</span><br><span class="line"><span class="keyword">const</span> instanceB = Singleton.getInstance(<span class="string">'nameB'</span>)</span><br><span class="line"><span class="built_in">console</span>.log(instanceA === instanceB, instanceA.getName(), instanceB.getName())</span><br><span class="line"><span class="comment">// true 'nameA' 'nameA'</span></span><br></pre></td></tr></table></figure>
+<p>当第一次调用<code>Singleton.getInstance()</code>方法的时候，会通过类<code>Singleton</code>创建一个对象并缓存给<code>this.instance</code>；第二次调用时，就直接返回了上次缓存的对象。所以<code>instanceA</code>和<code>instanceB</code>是完全相等的，或者可以说两个变量的引用指向同一个地址。第二次调用时，传入的参数<code>nameB</code>其实是没用的。</p>
+<h3 id="策略模式"><a href="#策略模式" class="headerlink" title="策略模式"></a>策略模式</h3><blockquote>
+<p>定义一系列的算法，把它们一个个封装起来，并且使它们可以相互替换。</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 年终奖计算策略，根据考评等级，分别为4倍，3倍，2倍薪水</span></span><br><span class="line"><span class="keyword">const</span> strategies = &#123;</span><br><span class="line">  S(salary) &#123;</span><br><span class="line">    <span class="keyword">return</span> salary * <span class="number">4</span></span><br><span class="line">  &#125;,</span><br><span class="line">  B(salary) &#123;</span><br><span class="line">    <span class="keyword">return</span> salary * <span class="number">3</span></span><br><span class="line">  &#125;,</span><br><span class="line">  A(salary) &#123;</span><br><span class="line">    <span class="keyword">return</span> salary * <span class="number">2</span></span><br><span class="line">  &#125;,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 根据考评等级计算年终奖</span></span><br><span class="line"><span class="comment"> * @param &#123;string&#125; level 考评等级</span></span><br><span class="line"><span class="comment"> * @param &#123;number&#125; salary 薪水</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">const</span> calculateBonus = <span class="function">(<span class="params">level, salary</span>) =&gt;</span> strategies[level](salary)</span><br><span class="line"></span><br><span class="line"><span class="built_in">console</span>.log(calculateBonus(<span class="string">'S'</span>, <span class="number">10000</span>)) <span class="comment">// 40000</span></span><br><span class="line"><span class="built_in">console</span>.log(calculateBonus(<span class="string">'A'</span>, <span class="number">10000</span>)) <span class="comment">// 20000</span></span><br></pre></td></tr></table></figure>
+<p>定义了三个年终奖计算策略，在计算年终奖函数中，根据考评的等级，将请求委托给策略对象中的某一个进行计算。</p>
+<h3 id="代理模式"><a href="#代理模式" class="headerlink" title="代理模式"></a>代理模式</h3><blockquote>
+<p>为一个对象提供一个代用品或占位符，一遍控制对它的访问。</p>
+</blockquote>
+<h4 id="常见代理模式"><a href="#常见代理模式" class="headerlink" title="常见代理模式"></a>常见代理模式</h4><ul>
+<li>保护代理：代理帮被本地过滤掉一些请求。</li>
+<li>虚拟代理：使用接口和本体一致的代理，在处理完一定流程后，由代理请求本体的接口。</li>
+<li>缓存代理：将运算结果缓存，如果下次运算时，如果传入参数一致，则直接返回缓存的结果。</li>
+</ul>
+<h4 id="虚拟代理示例"><a href="#虚拟代理示例" class="headerlink" title="虚拟代理示例"></a>虚拟代理示例</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">&lt;template&gt;</span><br><span class="line">  &lt;img :src=&quot;url&quot; :alt=&quot;alt&quot; :title=&quot;title&quot;&gt;</span><br><span class="line">&lt;/template&gt;</span><br><span class="line"></span><br><span class="line">&lt;script&gt;</span><br><span class="line">export default &#123;</span><br><span class="line">  name: &apos;VueDefaultImg&apos;</span><br><span class="line">  props: &#123;</span><br><span class="line">    src: String,</span><br><span class="line">    alt: String,</span><br><span class="line">    title: String</span><br><span class="line">  &#125;,</span><br><span class="line">  data () &#123;</span><br><span class="line">    return &#123;</span><br><span class="line">      url: &apos;&apos;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">  created () &#123;</span><br><span class="line">    const defaultImg = require(&apos;./default_image.png&apos;)</span><br><span class="line">    this.url = defaultImg</span><br><span class="line">    if (this.src) &#123;</span><br><span class="line">      this.loadImg(this.src)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">  methods: &#123;</span><br><span class="line">    loadImg (src) &#123;</span><br><span class="line">      let testImg = new Image()</span><br><span class="line">      testImg.src = src</span><br><span class="line">      testImg.onload = () =&gt; &#123;</span><br><span class="line">        this.url = src</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;,</span><br><span class="line">  watch: &#123;</span><br><span class="line">    src: function (val, oldVal) &#123;</span><br><span class="line">      this.loadImg(val)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line">&lt;/script&gt;</span><br></pre></td></tr></table></figure>
+<p>这是一个实现vue默认图片的组件，它与<code>img</code>标签都对外暴露了<code>src</code>,<code>alt</code>,<code>title</code>三个属性，事实上这个组件代理了<code>img</code>标签设置src的方法。在默认情况下，使用的是默认图片，只有当设置的src参数有效时，才去设置真正的<code>img</code>标签。</p>
+<h3 id="迭代器模式"><a href="#迭代器模式" class="headerlink" title="迭代器模式"></a>迭代器模式</h3><blockquote>
+<p>提供一种方法顺序访问一个聚合对象中的各个元素，而又不需要暴露该对象的内部表示。</p>
+</blockquote>
+<h4 id="内部迭代器"><a href="#内部迭代器" class="headerlink" title="内部迭代器"></a>内部迭代器</h4><p>已经定义号迭代规则，它完全接受整个迭代过程</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> each = <span class="function">(<span class="params">arr, callback</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; arr.length; i++) &#123;</span><br><span class="line">    callback.call(arr[i], i, arr[i])</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">each([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>], (index, element) =&gt; <span class="built_in">console</span>.log(index, element))</span><br></pre></td></tr></table></figure>
+<p>JavaScript中已经内置了迭代器，比方说<code>Array.prototype.forEach</code>，<code>for...in...</code>，<code>for...of...</code></p>
+<h4 id="外部迭代器"><a href="#外部迭代器" class="headerlink" title="外部迭代器"></a>外部迭代器</h4><p>必须显式地请求迭代下一个元素。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> Iterator = <span class="function">(<span class="params">obj</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">let</span> current = <span class="number">0</span></span><br><span class="line">  <span class="keyword">const</span> next = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">    current += <span class="number">1</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">const</span> isDone = <span class="function"><span class="params">()</span> =&gt;</span> current &gt;= obj.length</span><br><span class="line">  <span class="keyword">const</span> getCurrItem = <span class="function"><span class="params">()</span> =&gt;</span> obj[current]</span><br><span class="line">  <span class="keyword">return</span> &#123;</span><br><span class="line">    next,</span><br><span class="line">    isDone,</span><br><span class="line">    getCurrItem,</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> compare = <span class="function">(<span class="params">iterator1, iterator2</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">while</span> (!iterator1.isDone() &amp;&amp; !iterator2.isDone()) &#123;</span><br><span class="line">    <span class="keyword">if</span> (iterator1.getCurrItem() !== iterator2.getCurrItem()) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">    &#125;</span><br><span class="line">    iterator1.next()</span><br><span class="line">    iterator2.next()</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="comment">// 最后需要判断下长度是否相等</span></span><br><span class="line">  <span class="keyword">return</span> iterator1.isDone() === iterator2.isDone()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> iterator1 = Iterator([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>])</span><br><span class="line"><span class="keyword">const</span> iterator2 = Iterator([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>])</span><br><span class="line"><span class="built_in">console</span>.log(compare(iterator1, iterator2)) <span class="comment">// true</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 踩坑，一开始拿iterator比较了三次 发现有问题，因为经过第一次比较后，isDone()已经为true了</span></span><br><span class="line"><span class="keyword">const</span> iterator3 = Iterator([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>])</span><br><span class="line"><span class="keyword">const</span> iterator4 = Iterator([<span class="number">1</span>, <span class="number">2</span>])</span><br><span class="line"><span class="built_in">console</span>.log(compare(iterator3, iterator4)) <span class="comment">// false</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> iterator5 = Iterator([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>])</span><br><span class="line"><span class="keyword">const</span> iterator6 = Iterator([<span class="number">1</span>, <span class="number">2</span>, <span class="number">4</span>])</span><br><span class="line"><span class="built_in">console</span>.log(compare(iterator5, iterator6)) <span class="comment">// false</span></span><br></pre></td></tr></table></figure>
+<p>类似JavaScript中的生成器，参考<a href="https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Statements/function*" target="_blank" rel="noopener">generator function</a></p>
+<h3 id="发布-订阅模式"><a href="#发布-订阅模式" class="headerlink" title="发布-订阅模式"></a>发布-订阅模式</h3><blockquote>
+<p>又叫观察者模式，它定义对象间的一种一对多的依赖关系，当一个对象的状态发生改变时，所有依赖于它的对象都将得到通知。</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> EventsCenter = (<span class="function"><span class="keyword">function</span> <span class="title">generateCenter</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> keyList = &#123;&#125;</span><br><span class="line">  <span class="keyword">const</span> listen = <span class="function">(<span class="params">key, callback</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (!keyList[key]) &#123;</span><br><span class="line">      keyList[key] = []</span><br><span class="line">    &#125;</span><br><span class="line">    keyList[key].push(callback)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">const</span> trigger = <span class="function">(<span class="params">key, ...rest</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> callbacks = keyList[key]</span><br><span class="line">    <span class="keyword">if</span> (!callbacks || callbacks.length === <span class="number">0</span>) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">    &#125;</span><br><span class="line">    callbacks.forEach(<span class="function">(<span class="params">callback</span>) =&gt;</span> &#123;</span><br><span class="line">      callback(rest)</span><br><span class="line">    &#125;)</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">const</span> remove = <span class="function">(<span class="params">key, callback</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> callbacks = keyList[key]</span><br><span class="line">    <span class="keyword">if</span> (!callbacks) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (!callback) &#123;</span><br><span class="line">      <span class="comment">// 如果没传指定函数进来，则清除所有的函数</span></span><br><span class="line">      callbacks &amp;&amp; (callbacks.length = <span class="number">0</span>)</span><br><span class="line">      <span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 从后往前删除，确保每个都被删除掉</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = callbacks.length - <span class="number">1</span>; i &gt;= <span class="number">0</span>; i--) &#123;</span><br><span class="line">      <span class="keyword">if</span> (callbacks[i] === callback) &#123;</span><br><span class="line">        callbacks.splice(i, <span class="number">1</span>)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> &#123;</span><br><span class="line">    listen,</span><br><span class="line">    trigger,</span><br><span class="line">    remove,</span><br><span class="line">  &#125;</span><br><span class="line">&#125;())</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> testcallback = <span class="function">(<span class="params">info</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">`test event <span class="subst">$&#123;info&#125;</span>`</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">EventsCenter.listen(<span class="string">'testevent'</span>, testcallback)</span><br><span class="line">EventsCenter.trigger(<span class="string">'testevent'</span>, <span class="string">'test-info'</span>) <span class="comment">// test event test-info</span></span><br><span class="line"></span><br><span class="line">EventsCenter.remove(<span class="string">'testevent'</span>, testcallback)</span><br><span class="line">EventsCenter.trigger(<span class="string">'testevent'</span>, <span class="string">'test-info-after-remove'</span>) <span class="comment">// nothing</span></span><br></pre></td></tr></table></figure>
+<h3 id="命令模式"><a href="#命令模式" class="headerlink" title="命令模式"></a>命令模式</h3><blockquote>
+<p>将方法的调用,请求或者操作封装到一个单独的对象中,给我们酌情执行同时参数化和传递方法调用的能力。</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> Car = &#123;</span><br><span class="line">  A() &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'左转'</span>)</span><br><span class="line">  &#125;,</span><br><span class="line">  W() &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'前进'</span>)</span><br><span class="line">  &#125;,</span><br><span class="line">  D() &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'右转'</span>)</span><br><span class="line">  &#125;,</span><br><span class="line">  S() &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'后退'</span>)</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> makeCommand = <span class="function">(<span class="params">receiver, state</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">    receiver[state]()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> commandStack = [] <span class="comment">// 保存命令的堆栈</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> pressKey = <span class="function">(<span class="params">key</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> command = makeCommand(Car, key)</span><br><span class="line">  command()</span><br><span class="line">  commandStack.push(command)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> reply = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">while</span> (commandStack.length) &#123;</span><br><span class="line">    <span class="keyword">const</span> command = commandStack.shift()</span><br><span class="line">    command()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">pressKey(<span class="string">'W'</span>) <span class="comment">// 前进</span></span><br><span class="line">pressKey(<span class="string">'W'</span>) <span class="comment">// 前进</span></span><br><span class="line">pressKey(<span class="string">'A'</span>) <span class="comment">// 左转</span></span><br><span class="line">pressKey(<span class="string">'D'</span>) <span class="comment">// 右转</span></span><br><span class="line">pressKey(<span class="string">'S'</span>) <span class="comment">// 后退</span></span><br><span class="line"></span><br><span class="line">reply() <span class="comment">// 前进 前进 左转 右转 后退</span></span><br></pre></td></tr></table></figure>
+<h3 id="组合模式"><a href="#组合模式" class="headerlink" title="组合模式"></a>组合模式</h3><blockquote>
+<p>将对象组合成树形结构以表示“部分-整体”的层次结构，组合模式使得用户对单个对象和组合对象的使用具有一致性。</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> MacroCommand = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> commandList = []</span><br><span class="line">  <span class="keyword">const</span> add = <span class="function">(<span class="params">command</span>) =&gt;</span> &#123;</span><br><span class="line">    commandList.push(command)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">const</span> execute = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">    commandList.forEach(<span class="function">(<span class="params">command</span>) =&gt;</span> &#123;</span><br><span class="line">      command.execute()</span><br><span class="line">    &#125;)</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> &#123;</span><br><span class="line">    add,</span><br><span class="line">    execute,</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 打开空调命令</span></span><br><span class="line"><span class="keyword">const</span> openAcCommand = &#123;</span><br><span class="line">  execute() &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'打开空调'</span>)</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 打开电视和音响命令,由打开媒体命令控制</span></span><br><span class="line"><span class="keyword">const</span> openTvCommand = &#123;</span><br><span class="line">  execute() &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'打开电视'</span>)</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">const</span> openSoundCommand = &#123;</span><br><span class="line">  execute() &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'打开音箱'</span>)</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">const</span> openMediaCommand = MacroCommand()</span><br><span class="line">openMediaCommand.add(openTvCommand)</span><br><span class="line">openMediaCommand.add(openSoundCommand)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 回家后需要执行的总命令</span></span><br><span class="line"><span class="keyword">const</span> AfterGoHomeCommand = MacroCommand()</span><br><span class="line">AfterGoHomeCommand.add(openAcCommand)</span><br><span class="line">AfterGoHomeCommand.add(openMediaCommand)</span><br><span class="line"></span><br><span class="line">AfterGoHomeCommand.execute() <span class="comment">// 打开空调 打开电视 打开音箱</span></span><br></pre></td></tr></table></figure>
+<h3 id="模板方法模式"><a href="#模板方法模式" class="headerlink" title="模板方法模式"></a>模板方法模式</h3><blockquote>
+<p>模板方法模式由两部分结构组成，第一部分是抽象父类，第二部分是具体的实现子类。</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Beverage</span> </span>&#123;</span><br><span class="line">  boilWater() &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'把水煮沸'</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  brew() &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">'子类必须重写brew方法'</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  pourInCup() &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">'子类必须重写pourInCup方法'</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  addCondiments() &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="built_in">Error</span>(<span class="string">'子类必须重写addCondiments方法'</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  init() &#123;</span><br><span class="line">    <span class="keyword">this</span>.boilWater()</span><br><span class="line">    <span class="keyword">this</span>.brew()</span><br><span class="line">    <span class="keyword">this</span>.pourInCup()</span><br><span class="line">    <span class="keyword">this</span>.addCondiments()</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Coffee</span> <span class="keyword">extends</span> <span class="title">Beverage</span> </span>&#123;</span><br><span class="line">  brew() &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'用沸水冲泡咖啡'</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  pourInCup() &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'把咖啡倒进杯子'</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  addCondiments() &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'加糖和牛奶'</span>)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Tea</span> <span class="keyword">extends</span> <span class="title">Beverage</span> </span>&#123;</span><br><span class="line">  brew() &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'用沸水浸泡茶叶'</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  pourInCup() &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'把茶倒进杯子'</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  addCondiments() &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'加柠檬'</span>)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> tea = <span class="keyword">new</span> Tea()</span><br><span class="line"><span class="keyword">const</span> coffee = <span class="keyword">new</span> Coffee()</span><br><span class="line"></span><br><span class="line">tea.init()</span><br><span class="line">coffee.init()</span><br></pre></td></tr></table></figure>
+<h3 id="享元模式"><a href="#享元模式" class="headerlink" title="享元模式"></a>享元模式</h3><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Model</span> </span>&#123;</span><br><span class="line">  <span class="keyword">constructor</span>(sex) &#123;</span><br><span class="line">    <span class="keyword">this</span>.sex = sex</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  takePhoto(underwear) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">`sex = <span class="subst">$&#123;<span class="keyword">this</span>.sex&#125;</span>; underwear = <span class="subst">$&#123;underwear&#125;</span>`</span>)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> maleModel = <span class="keyword">new</span> Model(<span class="string">'male'</span>)</span><br><span class="line"><span class="keyword">const</span> femaleModel = <span class="keyword">new</span> Model(<span class="string">'female'</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">1</span>; i &lt;= <span class="number">50</span>; i++) &#123;</span><br><span class="line">  maleModel.takePhoto(i)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">let</span> j = <span class="number">1</span>; j &lt;= <span class="number">50</span>; j++) &#123;</span><br><span class="line">  femaleModel.takePhoto(j)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="职责链模式"><a href="#职责链模式" class="headerlink" title="职责链模式"></a>职责链模式</h3><blockquote>
+<p>使多个对象都有机会处理请求，从而避免请求的发送者和接受者之间的耦合关系，将这些对象练成一条链，并沿着这条链传递该请求，直到有一个对象处理它为止。</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> order500 = <span class="function">(<span class="params">orderType, pay, stock</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (orderType === <span class="number">1</span> &amp;&amp; pay === <span class="literal">true</span>) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'500元定金预购，得到100优惠券'</span>)</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">'nextSuccessor'</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> order200 = <span class="function">(<span class="params">orderType, pay, stock</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (orderType === <span class="number">2</span> &amp;&amp; pay === <span class="literal">true</span>) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'200元定金预购，得到50优惠券'</span>)</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="string">'nextSuccessor'</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> orderNormal = <span class="function">(<span class="params">orderType, pay, stock</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (stock &gt; <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'普通购买，无优惠券'</span>)</span><br><span class="line">  &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'手机库存不足'</span>)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="built_in">Function</span>.prototype.after = <span class="function"><span class="keyword">function</span>(<span class="params">fn</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> self = <span class="keyword">this</span></span><br><span class="line">  <span class="keyword">return</span> <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">const</span> ret = self.apply(<span class="keyword">this</span>, <span class="built_in">arguments</span>)</span><br><span class="line">    <span class="keyword">if</span> (ret === <span class="string">'nextSuccessor'</span>) &#123;</span><br><span class="line">      <span class="keyword">return</span> fn.apply(<span class="keyword">this</span>, <span class="built_in">arguments</span>)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> ret</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> order = order500.after(order200).after(orderNormal)</span><br><span class="line"></span><br><span class="line">order(<span class="number">1</span>, <span class="literal">true</span>, <span class="number">500</span>) <span class="comment">// 500元定金预购，得到100优惠券</span></span><br><span class="line">order(<span class="number">2</span>, <span class="literal">true</span>, <span class="number">500</span>) <span class="comment">// 200元定金预购，得到50优惠券</span></span><br><span class="line">order(<span class="number">1</span>, <span class="literal">false</span>, <span class="number">500</span>) <span class="comment">// 普通购买，无优惠券</span></span><br></pre></td></tr></table></figure>
+<h3 id="中介者模式"><a href="#中介者模式" class="headerlink" title="中介者模式"></a>中介者模式</h3><blockquote>
+<p>用一个中介对象来封装一系列的对象交互，中介者使各对象不需要显式地相互饮用，从而使其耦合松散，而且可以独立地改变它们之间的交互。</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> playerDirector = (<span class="function"><span class="keyword">function</span> <span class="title">generateDirector</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> players = &#123;&#125;</span><br><span class="line">  <span class="keyword">const</span> operations = &#123;&#125;</span><br><span class="line"></span><br><span class="line">  operations.addPlayer = <span class="function">(<span class="params">player</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> &#123; teamColor &#125; = player</span><br><span class="line">    players[teamColor] = players[teamColor] || []</span><br><span class="line">    players[teamColor].push(player)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  operations.removePlayer = <span class="function">(<span class="params">player</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> &#123; teamColor &#125; = player</span><br><span class="line">    <span class="keyword">const</span> teamPlayers = players[teamColor] || []</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = teamPlayers.length - <span class="number">1</span>; i &gt;= <span class="number">0</span>; i--) &#123;</span><br><span class="line">      <span class="keyword">if</span> (teamPlayers[i] === player) &#123;</span><br><span class="line">        teamPlayers.splice(i, <span class="number">1</span>)</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// teamPlayers = teamPlayers.filter(item =&gt; item !== player)</span></span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  operations.changeTeam = <span class="function">(<span class="params">player, newTeamColor</span>) =&gt;</span> &#123;</span><br><span class="line">    operations.removePlayer(player)</span><br><span class="line">    player.teamColor = newTeamColor</span><br><span class="line">    operations.addPlayer(player)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  operations.playerDead = <span class="function">(<span class="params">player</span>) =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> &#123; teamColor &#125; = player</span><br><span class="line">    <span class="keyword">const</span> teamPlayers = players[teamColor]</span><br><span class="line"></span><br><span class="line">    <span class="keyword">let</span> allDead = <span class="literal">true</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; teamPlayers.length; i++) &#123;</span><br><span class="line">      <span class="keyword">if</span> (teamPlayers[i].state !== <span class="string">'dead'</span>) &#123;</span><br><span class="line">        allDead = <span class="literal">false</span></span><br><span class="line">        <span class="keyword">break</span></span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (allDead) &#123;</span><br><span class="line">      teamPlayers.forEach(<span class="function">(<span class="params">element</span>) =&gt;</span> &#123;</span><br><span class="line">        element.lose()</span><br><span class="line">      &#125;)</span><br><span class="line">      <span class="keyword">const</span> colors = <span class="built_in">Object</span>.keys(players)</span><br><span class="line">      colors.forEach(<span class="function">(<span class="params">color</span>) =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (color !== teamColor) &#123;</span><br><span class="line">          players[color].forEach(<span class="function">(<span class="params">element</span>) =&gt;</span> &#123;</span><br><span class="line">            element.win()</span><br><span class="line">          &#125;)</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">const</span> reciveMessage = <span class="function">(<span class="params">message, ...rest</span>) =&gt;</span> &#123;</span><br><span class="line">    operations[message].apply(<span class="keyword">this</span>, rest)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  <span class="keyword">return</span> &#123;</span><br><span class="line">    reciveMessage,</span><br><span class="line">  &#125;</span><br><span class="line">&#125;())</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Player</span> </span>&#123;</span><br><span class="line">  <span class="keyword">constructor</span>(name, teamColor) &#123;</span><br><span class="line">    <span class="keyword">this</span>.name = name</span><br><span class="line">    <span class="keyword">this</span>.teamColor = teamColor</span><br><span class="line">    <span class="keyword">this</span>.state = <span class="string">'alive'</span></span><br><span class="line">    playerDirector.reciveMessage(<span class="string">'addPlayer'</span>, <span class="keyword">this</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  win() &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;<span class="keyword">this</span>.name&#125;</span> won`</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  lose() &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">`<span class="subst">$&#123;<span class="keyword">this</span>.name&#125;</span> lost`</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  die() &#123;</span><br><span class="line">    <span class="keyword">this</span>.state = <span class="string">'dead'</span></span><br><span class="line">    playerDirector.reciveMessage(<span class="string">'playerDead'</span>, <span class="keyword">this</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  remove() &#123;</span><br><span class="line">    playerDirector.reciveMessage(<span class="string">'removePlayer'</span>, <span class="keyword">this</span>)</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  changeTeam(color) &#123;</span><br><span class="line">    playerDirector.reciveMessage(<span class="string">'changeTeam'</span>, <span class="keyword">this</span>, color)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> player1 = <span class="keyword">new</span> Player(<span class="string">'皮蛋'</span>, <span class="string">'red'</span>)</span><br><span class="line"><span class="keyword">const</span> player2 = <span class="keyword">new</span> Player(<span class="string">'小怪'</span>, <span class="string">'red'</span>)</span><br><span class="line"><span class="keyword">const</span> player3 = <span class="keyword">new</span> Player(<span class="string">'宝宝'</span>, <span class="string">'red'</span>)</span><br><span class="line"><span class="keyword">const</span> player4 = <span class="keyword">new</span> Player(<span class="string">'小强'</span>, <span class="string">'blue'</span>)</span><br><span class="line"><span class="keyword">const</span> player5 = <span class="keyword">new</span> Player(<span class="string">'葱头'</span>, <span class="string">'blue'</span>)</span><br><span class="line"><span class="keyword">const</span> player6 = <span class="keyword">new</span> Player(<span class="string">'海盗'</span>, <span class="string">'blue'</span>)</span><br><span class="line"></span><br><span class="line">player1.remove()</span><br><span class="line">player2.remove()</span><br><span class="line">player4.changeTeam(<span class="string">'red'</span>)</span><br><span class="line">player3.die()</span><br><span class="line">player4.die()</span><br></pre></td></tr></table></figure>
+<h3 id="装饰者模式"><a href="#装饰者模式" class="headerlink" title="装饰者模式"></a>装饰者模式</h3><blockquote>
+<p>给给对象动态地增加职责的方式叫做装饰者模式。</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">Function</span>.prototype.before = <span class="function"><span class="keyword">function</span> <span class="title">before</span>(<span class="params">beforefn</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> self = <span class="keyword">this</span></span><br><span class="line">  <span class="keyword">return</span> <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">    beforefn.apply(<span class="keyword">this</span>, <span class="built_in">arguments</span>)</span><br><span class="line">    <span class="keyword">return</span> self.apply(<span class="keyword">this</span>,<span class="built_in">arguments</span>)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="built_in">Function</span>.prototype.after = <span class="function"><span class="keyword">function</span> <span class="title">after</span>(<span class="params">afterfn</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">const</span> self = <span class="keyword">this</span></span><br><span class="line">  <span class="keyword">return</span> <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">const</span> ret = self.apply(<span class="keyword">this</span>, <span class="built_in">arguments</span>)</span><br><span class="line">    afterfn.apply(<span class="keyword">this</span>, <span class="built_in">arguments</span>)</span><br><span class="line">    <span class="keyword">return</span> ret</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> testfn = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">'function itself'</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">testfn = testfn.before(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">'before function'</span>)</span><br><span class="line">&#125;).after(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">'after function'</span>)</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">testfn()</span><br></pre></td></tr></table></figure>
+<h3 id="状态模式"><a href="#状态模式" class="headerlink" title="状态模式"></a>状态模式</h3><blockquote>
+<p>允许一个对象在其内部改变状态时改变它的行为，对象看起来似乎修改了它的类。</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">OffLightState</span> </span>&#123;</span><br><span class="line">  <span class="keyword">constructor</span>(light) &#123;</span><br><span class="line">    <span class="keyword">this</span>.light = light</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  buttonWasPressed() &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'弱光'</span>)</span><br><span class="line">    <span class="keyword">this</span>.light.setState(<span class="keyword">this</span>.light.weakLightState)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">WeakLightState</span> </span>&#123;</span><br><span class="line">  <span class="keyword">constructor</span>(light) &#123;</span><br><span class="line">    <span class="keyword">this</span>.light = light</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  buttonWasPressed() &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'强光'</span>)</span><br><span class="line">    <span class="keyword">this</span>.light.setState(<span class="keyword">this</span>.light.strongLightState)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">StrongLightState</span> </span>&#123;</span><br><span class="line">  <span class="keyword">constructor</span>(light) &#123;</span><br><span class="line">    <span class="keyword">this</span>.light = light</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  buttonWasPressed() &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'关灯'</span>)</span><br><span class="line">    <span class="keyword">this</span>.light.setState(<span class="keyword">this</span>.light.offLightState)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Light</span> </span>&#123;</span><br><span class="line">  <span class="keyword">constructor</span>() &#123;</span><br><span class="line">    <span class="keyword">this</span>.offLightState = <span class="keyword">new</span> OffLightState(<span class="keyword">this</span>)</span><br><span class="line">    <span class="keyword">this</span>.weakLightState = <span class="keyword">new</span> WeakLightState(<span class="keyword">this</span>)</span><br><span class="line">    <span class="keyword">this</span>.strongLightState = <span class="keyword">new</span> StrongLightState(<span class="keyword">this</span>)</span><br><span class="line">    <span class="keyword">this</span>.currState = <span class="keyword">this</span>.offLightState</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  click() &#123;</span><br><span class="line">    <span class="keyword">this</span>.currState.buttonWasPressed()</span><br><span class="line">  &#125;</span><br><span class="line"></span><br><span class="line">  setState(newState) &#123;</span><br><span class="line">    <span class="keyword">this</span>.currState = newState</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> light = <span class="keyword">new</span> Light()</span><br><span class="line"></span><br><span class="line">light.click() <span class="comment">// 弱光</span></span><br><span class="line">light.click() <span class="comment">// 强光</span></span><br><span class="line">light.click() <span class="comment">// 关灯</span></span><br><span class="line">light.click() <span class="comment">// 弱光</span></span><br></pre></td></tr></table></figure>
+<h3 id="适配器模式"><a href="#适配器模式" class="headerlink" title="适配器模式"></a>适配器模式</h3><blockquote>
+<p>将一个接口转换成客户希望的另一个接口，适配器模式使接口不兼容的那些类可以一起工作。</p>
+</blockquote>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> googleMap = &#123;</span><br><span class="line">  show() &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'开始渲染谷歌地图'</span>)</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> baiduMap = &#123;</span><br><span class="line">  display() &#123;</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="string">'开始渲染百度地图'</span>)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> baiduMapAdapter = &#123;</span><br><span class="line">  show() &#123;</span><br><span class="line">    baiduMap.display()</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> renderMap = <span class="function">(<span class="params">map</span>) =&gt;</span> &#123;</span><br><span class="line">  map.show()</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">renderMap(googleMap)</span><br><span class="line">renderMap(baiduMapAdapter)</span><br></pre></td></tr></table></figure>
+<h3 id="参考文档"><a href="#参考文档" class="headerlink" title="参考文档"></a>参考文档</h3><ul>
+<li><a href="https://book.douban.com/subject/26382780/" target="_blank" rel="noopener">JavaScript设计模式与开发实践</a></li>
+<li><a href="https://design-patterns.readthedocs.io/zh_CN/latest/index.html" target="_blank" rel="noopener">图说设计模式</a></li>
+</ul>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/JavaScript/" rel="tag"># JavaScript</a>
+          
+            <a href="/tags/Design-Patterns/" rel="tag"># Design-Patterns</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/01/07/when-mocha-meets-typescript/" rel="next" title="当Mocha和TypeScript偶遇">
+                <i class="fa fa-chevron-left"></i> 当Mocha和TypeScript偶遇
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/01/19/use-stylelint-in-vue/" rel="prev" title="在vue项目中使用stylelint">
+                在vue项目中使用stylelint <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="disqus_thread">
+        <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+      </div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/uploads/avatar.png" alt="Neail">
+            
+              <p class="site-author-name" itemprop="name">Neail</p>
+              <p class="site-description motion-element" itemprop="description">Everything will be ok.</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">10</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">5</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">27</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#单例模式"><span class="nav-number">1.</span> <span class="nav-text">单例模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#策略模式"><span class="nav-number">2.</span> <span class="nav-text">策略模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#代理模式"><span class="nav-number">3.</span> <span class="nav-text">代理模式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#常见代理模式"><span class="nav-number">3.1.</span> <span class="nav-text">常见代理模式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#虚拟代理示例"><span class="nav-number">3.2.</span> <span class="nav-text">虚拟代理示例</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#迭代器模式"><span class="nav-number">4.</span> <span class="nav-text">迭代器模式</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#内部迭代器"><span class="nav-number">4.1.</span> <span class="nav-text">内部迭代器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#外部迭代器"><span class="nav-number">4.2.</span> <span class="nav-text">外部迭代器</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#发布-订阅模式"><span class="nav-number">5.</span> <span class="nav-text">发布-订阅模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#命令模式"><span class="nav-number">6.</span> <span class="nav-text">命令模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#组合模式"><span class="nav-number">7.</span> <span class="nav-text">组合模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#模板方法模式"><span class="nav-number">8.</span> <span class="nav-text">模板方法模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#享元模式"><span class="nav-number">9.</span> <span class="nav-text">享元模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#职责链模式"><span class="nav-number">10.</span> <span class="nav-text">职责链模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#中介者模式"><span class="nav-number">11.</span> <span class="nav-text">中介者模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#装饰者模式"><span class="nav-number">12.</span> <span class="nav-text">装饰者模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#状态模式"><span class="nav-number">13.</span> <span class="nav-text">状态模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#适配器模式"><span class="nav-number">14.</span> <span class="nav-text">适配器模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考文档"><span class="nav-number">15.</span> <span class="nav-text">参考文档</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Neail</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+  
+  <script src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+  
+    <script id="dsq-count-scr" src="https://neailblog.disqus.com/count.js" async></script>
+  
+
+  
+    <script>
+      var disqus_config = function () {
+        this.page.url = "https://blog.neail.xyz/2019/01/12/JavaScript-Design-Patterns/";
+        this.page.identifier = "2019/01/12/JavaScript-Design-Patterns/";
+        this.page.title = 'JavaScript设计模式';
+        };
+      function loadComments () {
+        var d = document, s = d.createElement('script');
+        s.src = 'https://neailblog.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      }
+      
+        $(function () {
+          var offsetTop = $('#comments').offset().top - $(window).height();
+          if (offsetTop <= 0) {
+            // load directly when there's no a scrollbar
+            loadComments();
+          } else {
+            $(window).on('scroll.disqus_scroll', function () {
+              // offsetTop may changes because of manually resizing browser window or lazy loading images.
+              var offsetTop = $('#comments').offset().top - $(window).height();
+              var scrollTop = $(window).scrollTop();
+
+              // pre-load comments a bit? (margin or anything else)
+              if (offsetTop - scrollTop < 60) {
+                $(window).off('.disqus_scroll');
+                loadComments();
+              }
+            });
+          }
+        });
+      
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

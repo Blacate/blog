@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.6.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.6.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="最近在业务开发的过程中遇到了实现定时任务的需求 真叫人头大">
+<meta name="keywords" content="redis,timed-task,sorted-set">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用redis有序集合实现定时任务">
+<meta property="og:url" content="https://blog.neail.xyz/2018/12/27/implementing-timed-tasks-with-redis/index.html">
+<meta property="og:site_name" content="Neail&#39;s island">
+<meta property="og:description" content="最近在业务开发的过程中遇到了实现定时任务的需求 真叫人头大">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-12-06T11:50:52.069Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="使用redis有序集合实现定时任务">
+<meta name="twitter:description" content="最近在业务开发的过程中遇到了实现定时任务的需求 真叫人头大">
+
+
+
+
+
+
+  <link rel="canonical" href="https://blog.neail.xyz/2018/12/27/implementing-timed-tasks-with-redis/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>使用redis有序集合实现定时任务 | Neail's island</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion .logo-line-before i { left: initial; }
+    .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Neail's island</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://blog.neail.xyz/2018/12/27/implementing-timed-tasks-with-redis/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Neail">
+      <meta itemprop="description" content="Everything will be ok.">
+      <meta itemprop="image" content="/uploads/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Neail's island">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">使用redis有序集合实现定时任务
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2018-12-27 14:51:10" itemprop="dateCreated datePublished" datetime="2018-12-27T14:51:10+08:00">2018-12-27</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2019-12-06 19:50:52" itemprop="dateModified" datetime="2019-12-06T19:50:52+08:00">2019-12-06</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/node/" itemprop="url" rel="index"><span itemprop="name">node</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/12/27/implementing-timed-tasks-with-redis/#comments" itemprop="discussionUrl">
+                
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2018/12/27/implementing-timed-tasks-with-redis/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>最近在业务开发的过程中遇到了实现定时任务的需求</p>
+<p><strong>真叫人头大</strong></p>
+<a id="more"></a>
+<h3 id="常见方案"><a href="#常见方案" class="headerlink" title="常见方案"></a>常见方案</h3><ul>
+<li>使用<code>node-schedule</code> 或者<code>node-cron</code> 之类的定时任务库</li>
+<li>使用时间轮定时器</li>
+<li>使用redis的<strong>有序集合</strong>或<strong>键过期通知</strong>实现</li>
+</ul>
+<h4 id="定时任务库"><a href="#定时任务库" class="headerlink" title="定时任务库"></a>定时任务库</h4><p>个人感觉，<code>node-schedule</code>更适合比较固定的定时任务，比方说需要每天凌晨一点备份数据，需要每隔几分钟执行某个操作，而这次的需求是在十五分钟后自动关闭订单，当然也可以创建很多很多的定时任务，或者说每隔一分钟遍历一次数据库，可是这样不是很优雅，而且也不方便以后维护。</p>
+<h4 id="时间轮定时器"><a href="#时间轮定时器" class="headerlink" title="时间轮定时器"></a>时间轮定时器</h4><p>时间轮定时器可以理解为一个轮盘，每个轮盘上有多个轮槽，我们将需要的task放进合适的轮槽里面，每隔一定的时间间隔，跳到下一个轮槽中，同时触发轮槽中的task。优点是时间间隔可控，且效率较高；但是task都是保存在内存中的，重启服务时会导致task的丢失，同时在多实例的情况下，每个实例都维护了自己的时间轮，不方便管理。</p>
+<h4 id="redis键过期通知"><a href="#redis键过期通知" class="headerlink" title="redis键过期通知"></a>redis键过期通知</h4><p>redis有一种键空间通知的机制，客户端可以订阅一些key的事件，包括key过期事件，但是我们不能得到过期的key所对应的value值，所以需要把相关的信息都保存在key中，比方所需要在15分中后触发关闭订单的操作，可以设置key为<code>CheckOrder-${order_id}</code>并且设置它在15分钟后过期，这样在15分钟后，我们会收到此key过期的通知时间，再根据<code>order_id</code>去数据库中获取订单的详情，并进行接下来的操作。</p>
+<h4 id="redis有序集合"><a href="#redis有序集合" class="headerlink" title="redis有序集合"></a>redis有序集合</h4><p>在有序集合中，将任务计划执行的时间戳作为score，这样任务在加入sets的时候已经按时间排序，这时候，我们每隔一段时间去取出符合条件的任务并执行即可。</p>
+<h3 id="使用redis有序集合实现定时任务"><a href="#使用redis有序集合实现定时任务" class="headerlink" title="使用redis有序集合实现定时任务"></a>使用redis有序集合实现定时任务</h3><h4 id="初始化redis客户端"><a href="#初始化redis客户端" class="headerlink" title="初始化redis客户端"></a>初始化redis客户端</h4><figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// redis.service.ts</span></span><br><span class="line"><span class="keyword">import</span> * <span class="keyword">as</span> redis <span class="keyword">from</span> <span class="string">'redis'</span>;</span><br><span class="line"><span class="keyword">import</span> * <span class="keyword">as</span> bluebird <span class="keyword">from</span> <span class="string">'bluebird'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">class</span> RedisService &#123;</span><br><span class="line">    <span class="keyword">constructor</span>(<span class="params"></span>) &#123;</span><br><span class="line">        bluebird.promisifyAll(redis); <span class="comment">// 转为promise方法</span></span><br><span class="line">        <span class="keyword">this</span>.redis = redis.createClient(); <span class="comment">// 初始化客户端</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="实现添加任务以及取出任务的方法"><a href="#实现添加任务以及取出任务的方法" class="headerlink" title="实现添加任务以及取出任务的方法"></a>实现添加任务以及取出任务的方法</h4><figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="keyword">class</span> RedisService &#123;</span><br><span class="line">    <span class="keyword">constructor</span>(<span class="params"></span>) &#123;&#125; <span class="comment">// ...</span></span><br><span class="line">    </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">async</span> zadd(key: <span class="built_in">string</span>, score: <span class="built_in">number</span>, member: <span class="built_in">string</span>): <span class="built_in">Promise</span>&lt;<span class="built_in">void</span>&gt; &#123;</span><br><span class="line">        <span class="keyword">await</span> <span class="keyword">this</span>.redis.zaddAsync(key, score, member);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">async</span> zshift(key: stirng, max_score: <span class="built_in">number</span>) &#123;</span><br><span class="line">        <span class="keyword">const</span> taskArr = <span class="keyword">await</span> <span class="keyword">this</span>.redis.zrangebyscoreAsync(key, <span class="number">0</span>, max_score);</span><br><span class="line">        <span class="keyword">if</span> (taskArr.lenght === <span class="number">0</span> ) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">const</span> randomPosition = <span class="built_in">Math</span>.floor(<span class="built_in">Math</span>.random() * taskArr.lenght);</span><br><span class="line">        <span class="keyword">const</span> item = taskArr.splice(randomPosition, <span class="number">1</span>)[<span class="number">0</span>];</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">await</span> <span class="keyword">this</span>.redis.zremAsync(key, item)) &#123;</span><br><span class="line">            <span class="keyword">return</span> item;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>zadd(key, score, value)</code>方法为向有序集合中添加一条记录</li>
+<li><code>zrangebyscore(key, min, max)</code>为返回有序集合中<code>score</code>介于[min, max]之间的成员，递增排列</li>
+<li>因为存在多实例的情况，所以每个实例是随机从任务池中取出一个任务，避免每个实例取的都是同一个</li>
+<li>因为redis的原子性，所以在取出任务后，将该任务从有序集合中剔除可以避免同一个任务同时被多个实例同时执行</li>
+</ul>
+<h4 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h4><figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// order.service.ts</span></span><br><span class="line"><span class="keyword">import</span> &#123; RedisService&#125; <span class="keyword">from</span> <span class="string">'./redis.service.ts'</span>;</span><br><span class="line"><span class="keyword">import</span> * <span class="keyword">as</span> schedule <span class="keyword">from</span> <span class="string">'node-schedule'</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> redisService = <span class="keyword">new</span> RedisService();</span><br><span class="line"></span><br><span class="line"><span class="comment">// add task</span></span><br><span class="line">redisService.zadd(<span class="string">'cron_order_task'</span>, <span class="built_in">Date</span>.now() + <span class="number">15</span> * <span class="number">60</span> * <span class="number">1000</span>, <span class="string">'order_id_1'</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// handle effective task</span></span><br><span class="line"><span class="keyword">const</span> rule = <span class="keyword">new</span> schedule.RecurrenceRule();</span><br><span class="line">rule.minute = <span class="keyword">new</span> schedule.Range(<span class="number">0</span>, <span class="number">59</span>, <span class="number">1</span>);</span><br><span class="line">schedule.scheduleJob(rule, <span class="keyword">async</span> () =&gt; &#123;</span><br><span class="line">    <span class="comment">// get one</span></span><br><span class="line">    <span class="keyword">let</span> order_id = <span class="keyword">await</span> redisService.zshift(<span class="string">'cron_order_task'</span>, <span class="built_in">Date</span>.now());</span><br><span class="line">    <span class="keyword">while</span> (order_id) &#123;</span><br><span class="line">        <span class="comment">// handle order by order_id</span></span><br><span class="line">        <span class="comment">// ...</span></span><br><span class="line">        <span class="comment">// get another</span></span><br><span class="line">        order_id = <span class="keyword">await</span> redisService.zshift(<span class="string">'cron_order_task'</span>, <span class="built_in">Date</span>.now());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p>这边使用了<code>node-schedule</code>每隔一分钟检查有没有需要执行的任务，对于时间要求更高的任务，可以减少时间间隔或者使用其他的解决方案</p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>使用有序集合来实现定时任务实际上是把执行时间作为排序项，每隔一段时间检查是否有到期的任务，适合对于时间误差不是很严格的定时任务，相对于时间轮等方式来讲，有序集合的方式相对来说任务列表更直观，更友好一些。</p>
+<h3 id="REF"><a href="#REF" class="headerlink" title="REF"></a>REF</h3><ul>
+<li><a href="https://github.com/node-schedule/node-schedule" target="_blank" rel="noopener">node-schedule</a></li>
+<li><a href="http://redisdoc.com/sorted_set/zrangebyscore.html" target="_blank" rel="noopener">ZRANFEBYSCORE</a></li>
+<li><a href="https://www.jianshu.com/p/4c270f81ff22" target="_blank" rel="noopener">时间轮定时器</a></li>
+<li><a href="https://blog.csdn.net/orangleliu/article/details/52038092" target="_blank" rel="noopener">redis定时任务</a></li>
+</ul>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/redis/" rel="tag"># redis</a>
+          
+            <a href="/tags/timed-task/" rel="tag"># timed-task</a>
+          
+            <a href="/tags/sorted-set/" rel="tag"># sorted-set</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/12/26/use-webhook-to-build-automatically/" rel="next" title="使用WebHooks实现自动构建">
+                <i class="fa fa-chevron-left"></i> 使用WebHooks实现自动构建
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/01/07/when-mocha-meets-typescript/" rel="prev" title="当Mocha和TypeScript偶遇">
+                当Mocha和TypeScript偶遇 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="disqus_thread">
+        <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+      </div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/uploads/avatar.png" alt="Neail">
+            
+              <p class="site-author-name" itemprop="name">Neail</p>
+              <p class="site-description motion-element" itemprop="description">Everything will be ok.</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">10</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">5</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">27</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#常见方案"><span class="nav-number">1.</span> <span class="nav-text">常见方案</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#定时任务库"><span class="nav-number">1.1.</span> <span class="nav-text">定时任务库</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#时间轮定时器"><span class="nav-number">1.2.</span> <span class="nav-text">时间轮定时器</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#redis键过期通知"><span class="nav-number">1.3.</span> <span class="nav-text">redis键过期通知</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#redis有序集合"><span class="nav-number">1.4.</span> <span class="nav-text">redis有序集合</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用redis有序集合实现定时任务"><span class="nav-number">2.</span> <span class="nav-text">使用redis有序集合实现定时任务</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#初始化redis客户端"><span class="nav-number">2.1.</span> <span class="nav-text">初始化redis客户端</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#实现添加任务以及取出任务的方法"><span class="nav-number">2.2.</span> <span class="nav-text">实现添加任务以及取出任务的方法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#使用"><span class="nav-number">2.3.</span> <span class="nav-text">使用</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-number">3.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#REF"><span class="nav-number">4.</span> <span class="nav-text">REF</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Neail</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+  
+  <script src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+  
+    <script id="dsq-count-scr" src="https://neailblog.disqus.com/count.js" async></script>
+  
+
+  
+    <script>
+      var disqus_config = function () {
+        this.page.url = "https://blog.neail.xyz/2018/12/27/implementing-timed-tasks-with-redis/";
+        this.page.identifier = "2018/12/27/implementing-timed-tasks-with-redis/";
+        this.page.title = '使用redis有序集合实现定时任务';
+        };
+      function loadComments () {
+        var d = document, s = d.createElement('script');
+        s.src = 'https://neailblog.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      }
+      
+        $(function () {
+          var offsetTop = $('#comments').offset().top - $(window).height();
+          if (offsetTop <= 0) {
+            // load directly when there's no a scrollbar
+            loadComments();
+          } else {
+            $(window).on('scroll.disqus_scroll', function () {
+              // offsetTop may changes because of manually resizing browser window or lazy loading images.
+              var offsetTop = $('#comments').offset().top - $(window).height();
+              var scrollTop = $(window).scrollTop();
+
+              // pre-load comments a bit? (margin or anything else)
+              if (offsetTop - scrollTop < 60) {
+                $(window).off('.disqus_scroll');
+                loadComments();
+              }
+            });
+          }
+        });
+      
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

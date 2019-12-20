@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.6.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.6.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="其实它有个更好听的名字叫做持续集成，不过我觉得还没有到持续集成那么夸张的程度，姑且叫他自动构建吧。 嗯，它不配。">
+<meta name="keywords" content="webhooks,npm,git,CI">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用WebHooks实现自动构建">
+<meta property="og:url" content="https://blog.neail.xyz/2018/12/26/use-webhook-to-build-automatically/index.html">
+<meta property="og:site_name" content="Neail&#39;s island">
+<meta property="og:description" content="其实它有个更好听的名字叫做持续集成，不过我觉得还没有到持续集成那么夸张的程度，姑且叫他自动构建吧。 嗯，它不配。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2019-12-06T11:50:52.070Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="使用WebHooks实现自动构建">
+<meta name="twitter:description" content="其实它有个更好听的名字叫做持续集成，不过我觉得还没有到持续集成那么夸张的程度，姑且叫他自动构建吧。 嗯，它不配。">
+
+
+
+
+
+
+  <link rel="canonical" href="https://blog.neail.xyz/2018/12/26/use-webhook-to-build-automatically/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>使用WebHooks实现自动构建 | Neail's island</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion .logo-line-before i { left: initial; }
+    .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Neail's island</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://blog.neail.xyz/2018/12/26/use-webhook-to-build-automatically/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Neail">
+      <meta itemprop="description" content="Everything will be ok.">
+      <meta itemprop="image" content="/uploads/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Neail's island">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">使用WebHooks实现自动构建
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2018-12-26 01:07:22" itemprop="dateCreated datePublished" datetime="2018-12-26T01:07:22+08:00">2018-12-26</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2019-12-06 19:50:52" itemprop="dateModified" datetime="2019-12-06T19:50:52+08:00">2019-12-06</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/efficiency/" itemprop="url" rel="index"><span itemprop="name">efficiency</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/12/26/use-webhook-to-build-automatically/#comments" itemprop="discussionUrl">
+                
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2018/12/26/use-webhook-to-build-automatically/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>其实它有个更好听的名字叫做持续集成，不过我觉得还没有到持续集成那么夸张的程度，姑且叫他自动构建吧。</p>
+<p><strong>嗯，它不配。</strong></p>
+<a id="more"></a>
+<hr>
+<p><strong>Update at 20190119</strong></p>
+<p><strong>Add demo <a href="https://github.com/Blacate/webhook-service-demo" target="_blank" rel="noopener">webhook-service-demo</a></strong></p>
+<hr>
+<p>持续集成大概是我这种懒人的福音吧，毕竟多敲下面几个命令还是挺累的～</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">rm -rf dist</span><br><span class="line">npm run build</span><br><span class="line">npm run test</span><br><span class="line">npm publish</span><br></pre></td></tr></table></figure>
+<p>这个一个npm模块在更新完成之后重新发版需要的步骤，包括：删除旧文件 打包 执行测试脚本 以及最后发布到npm仓库，虽然只有四条命令，但是每次敲一下还是挺麻烦的，而且容易忘，所以写到了<code>package.json</code> 中</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">"scripts"</span>: &#123;</span><br><span class="line">        <span class="attr">"build"</span>: <span class="string">"tsc -p tsconfig.json"</span>,</span><br><span class="line">        <span class="attr">"format"</span>: <span class="string">"lint-staged"</span>,</span><br><span class="line">        <span class="attr">"prepublish:npm"</span>: <span class="string">"rm -rf dist &amp;&amp; npm run build"</span>,</span><br><span class="line">        <span class="attr">"publish:npm"</span>: <span class="string">"npm publish"</span>,</span><br><span class="line">        <span class="attr">"test"</span>: <span class="string">"mocha -r ts-node/register test/**/*.spec.ts"</span></span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>可是这样一点也不酷，那就试试webhook吧～</p>
+<h3 id="WebHooks"><a href="#WebHooks" class="headerlink" title="WebHooks?"></a>WebHooks?</h3><p>简单来讲就是我们向远程仓库push代码之后，会给我们指定的URL发送一个POST请求，这样就可以触发我们所需要的操作。</p>
+<p>这边以码云为例，每个Hook包括三个方面：</p>
+<ul>
+<li>URL：POST的地址</li>
+<li>密码：每次的请求都会带上密码,用来过滤恶意请求</li>
+<li>类型：包括Push，<strong>Tag Push</strong>，Issue，Pull Request，评论</li>
+</ul>
+<p>这边用到的是Tag Push，因为需要在每次打版本标签后自动发版</p>
+<h3 id="处理POST请求"><a href="#处理POST请求" class="headerlink" title="处理POST请求"></a>处理POST请求</h3><p>我是用<code>koa</code> 单独起了一个服务用来接收并处理POST请求。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> Koa = <span class="built_in">require</span>(<span class="string">'koa'</span>)</span><br><span class="line"><span class="keyword">const</span> logger = <span class="built_in">require</span>(<span class="string">'koa-logger'</span>)</span><br><span class="line"><span class="keyword">const</span> bodyParser = <span class="built_in">require</span>(<span class="string">'koa-bodyparser'</span>)</span><br><span class="line"><span class="keyword">const</span> Router = <span class="built_in">require</span>(<span class="string">'koa-router'</span>)</span><br><span class="line"><span class="keyword">const</span> config = <span class="built_in">require</span>(<span class="string">'./config'</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">// 项目打包脚本</span></span><br><span class="line"><span class="keyword">const</span> project1Fun = <span class="built_in">require</span>(<span class="string">'./scripts/project1'</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> app = <span class="keyword">new</span> Koa()</span><br><span class="line"><span class="keyword">const</span> router = <span class="keyword">new</span> Router()</span><br><span class="line"><span class="keyword">const</span> port = config.port || <span class="number">3000</span></span><br><span class="line"></span><br><span class="line">app.use(logger())</span><br><span class="line">app.use(bodyParser())</span><br><span class="line"></span><br><span class="line">router.get(<span class="string">'/'</span>, <span class="keyword">async</span> ctx =&gt; &#123;</span><br><span class="line">  ctx.status = <span class="number">204</span></span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">router.post(<span class="string">'/project1'</span>, <span class="keyword">async</span> ctx =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> body = ctx.request.body</span><br><span class="line">  <span class="keyword">if</span> (body.password === <span class="string">'project1password'</span> &amp;&amp; body.hook_name === <span class="string">'tag_push_hooks'</span>) &#123;</span><br><span class="line">    project1Fun()</span><br><span class="line">  &#125;</span><br><span class="line">  ctx.body = &#123;</span><br><span class="line">    success: <span class="literal">true</span>,</span><br><span class="line">  &#125;</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">app.use(router.routes())</span><br><span class="line">app.use(router.allowedMethods())</span><br><span class="line"></span><br><span class="line">app.listen(port, () =&gt; &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">`webhook service start at <span class="subst">$&#123;port&#125;</span>`</span>)</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p>核心的代码其实就一个这个文件，接收请求后判断是否符合条件，如果符合的话，就执行对应的脚本文件。</p>
+<p>详细的内容看<a href="https://koajs.com/" target="_blank" rel="noopener">Koa官网</a>即可～</p>
+<h3 id="脚本文件"><a href="#脚本文件" class="headerlink" title="脚本文件"></a>脚本文件</h3><p>这算是自动构建最核心的一部分了，完成了需要我们每次手动执行的发布过程，脚本有两种实现方式：</p>
+<h4 id="shell脚本"><a href="#shell脚本" class="headerlink" title="shell脚本"></a>shell脚本</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">dir=/tmp/webhook_project1_dir</span><br><span class="line">gitrepo=git@gitee.com:user/project1.git</span><br><span class="line"></span><br><span class="line">if [ ! -d dir ]; then</span><br><span class="line">    git clone $gitrepo $dir #如果目录不存在则克隆项目</span><br><span class="line">fi</span><br><span class="line">cd $dir</span><br><span class="line">git reset --hard</span><br><span class="line">git pull #拉取更新</span><br><span class="line">yarn #安装依赖</span><br><span class="line">npm run test #执行测试脚本</span><br><span class="line">npm run publish:npm #发布</span><br></pre></td></tr></table></figure>
+<p>shell脚本的一个优势是简单，实际就是把命令整理出一个脚本文件；但是，存在的问题就是不可控，我们不能拿到每一步的执行结果，无法控制进度以及做错误通知。</p>
+<h4 id="JS脚本"><a href="#JS脚本" class="headerlink" title="JS脚本"></a>JS脚本</h4><figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// scripts/project1.js</span></span><br><span class="line"><span class="keyword">const</span> gitP = <span class="built_in">require</span>(<span class="string">'simple-git/promise'</span>)</span><br><span class="line"><span class="keyword">const</span> mkdirp = <span class="built_in">require</span>(<span class="string">'mkdirp'</span>)</span><br><span class="line"><span class="keyword">const</span> <span class="built_in">Promise</span> = <span class="built_in">require</span>(<span class="string">'bluebird'</span>)</span><br><span class="line"><span class="keyword">const</span> nodeCmd = <span class="built_in">require</span>(<span class="string">'node-cmd'</span>)</span><br><span class="line"><span class="keyword">const</span> print = <span class="built_in">require</span>(<span class="string">'../utils/print'</span>) <span class="comment">// 打印数组型日志用</span></span><br><span class="line"><span class="keyword">const</span> mail = <span class="built_in">require</span>(<span class="string">'../utils/mail'</span>) <span class="comment">// 封装的邮件服务</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> projectDir = <span class="string">'/tmp/webhook_project1_dir'</span></span><br><span class="line"><span class="keyword">const</span> gitRepo = <span class="string">'git@gitee.com:user/project1.git'</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> cmd = <span class="built_in">Promise</span>.promisify(nodeCmd.get, &#123; <span class="attr">multiArgs</span>: <span class="literal">true</span>, <span class="attr">context</span>: nodeCmd &#125;)</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">initialiseRepo</span> (<span class="params">git</span>) </span>&#123;</span><br><span class="line">  <span class="keyword">return</span> git.init()</span><br><span class="line">    .then(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="string">'[INFO] Initing Repo...'</span>)</span><br><span class="line">      <span class="keyword">return</span> git.addRemote(<span class="string">'origin'</span>, gitRepo)</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> project1Fun = <span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> log = []</span><br><span class="line">  mkdirp.sync(projectDir)</span><br><span class="line">  <span class="keyword">const</span> git = gitP(projectDir)</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">`[INFO] Repo: <span class="subst">$&#123;gitRepo&#125;</span>`</span>)</span><br><span class="line">  git.checkIsRepo()</span><br><span class="line">    .then(<span class="function"><span class="params">isRepo</span> =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">if</span> (!isRepo) &#123;</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="string">'[INFO] Repo is not exist'</span>)</span><br><span class="line">        <span class="keyword">return</span> initialiseRepo(git)</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="string">'[INFO] Repo is exist.'</span>)</span><br><span class="line">      <span class="keyword">return</span> isRepo</span><br><span class="line">    &#125;)</span><br><span class="line">    .then(<span class="function"><span class="params">()</span> =&gt;</span> git.reset(<span class="string">'hard'</span>))</span><br><span class="line">    .then(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="string">'[INFO] Pulling updates...'</span>)</span><br><span class="line">      <span class="keyword">return</span> git.pull(<span class="string">'origin'</span>, <span class="string">'master'</span>)</span><br><span class="line">    &#125;)</span><br><span class="line">    .then(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="string">'[INFO] Installing dependencies...'</span>)</span><br><span class="line">      <span class="keyword">return</span> cmd(<span class="string">`npm install --prefix <span class="subst">$&#123;projectDir&#125;</span>`</span>)</span><br><span class="line">    &#125;)</span><br><span class="line">    .then(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="string">'[INFO] Running test scripts...'</span>)</span><br><span class="line">      <span class="keyword">return</span> cmd(<span class="string">`npm run test --prefix <span class="subst">$&#123;projectDir&#125;</span>`</span>)</span><br><span class="line">    &#125;)</span><br><span class="line">    .then(<span class="function"><span class="params">res</span> =&gt;</span> &#123;</span><br><span class="line">      print.printArr(res)</span><br><span class="line">      log.push(...res)</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="string">'[INFO] Publishing package...'</span>)</span><br><span class="line">      <span class="keyword">return</span> cmd(<span class="string">`npm run publish:npm --prefix <span class="subst">$&#123;projectDir&#125;</span>`</span>)</span><br><span class="line">    &#125;)</span><br><span class="line">    .then(<span class="function"><span class="params">res</span> =&gt;</span> &#123;</span><br><span class="line">      print.printArr(res)</span><br><span class="line">      log.push(...res)</span><br><span class="line">      mail.sendMail(<span class="string">'i@mymail.com'</span>, log, <span class="string">'Project1 publish success'</span>)</span><br><span class="line">    &#125;)</span><br><span class="line">    .catch(<span class="function"><span class="params">err</span> =&gt;</span> &#123;</span><br><span class="line">      <span class="built_in">console</span>.log(err)</span><br><span class="line">      log.push(err)</span><br><span class="line">      mail.sendMail(<span class="string">'i@mymail.com'</span>, log, <span class="string">'Project1 publish failed'</span>)</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="built_in">module</span>.exports = project1Fun</span><br></pre></td></tr></table></figure>
+<p>这里面主要涉及了一下几个部分</p>
+<h5 id="node-mkdirp"><a href="#node-mkdirp" class="headerlink" title="node-mkdirp"></a><a href="https://github.com/substack/node-mkdirp" target="_blank" rel="noopener">node-mkdirp</a></h5><p>用来创建文件夹，相当于<code>mkdir -p</code> 命令，同时提供了同步的方法</p>
+<h5 id="simple-git"><a href="#simple-git" class="headerlink" title="simple-git"></a><a href="https://github.com/steveukx/git-js" target="_blank" rel="noopener">simple-git</a></h5><p>常用git命令的封装，在这次的脚本用用到的是检测是否是个git仓库，clone项目以及拉取更新，项目本身是提供了promise的方法的，方便我们用promise链的形式～</p>
+<h5 id="node-cmd"><a href="#node-cmd" class="headerlink" title="node-cmd"></a><a href="https://github.com/steveukx/git-js" target="_blank" rel="noopener">node-cmd</a></h5><p>这个主要是用来执行shell命令，npm上面这类库还是挺多的，试用了好多个，最后发现还是这个最最最合适～</p>
+<ul>
+<li>可以使用<code>bluebird</code> 实现promise方法</li>
+<li>支持<code>exit code</code> 的捕获，在异常退出时直接进入<code>catch</code> 函数</li>
+<li>在promise<code>resolve</code> 后可以拿到完整的输出，打印日志方便debug</li>
+</ul>
+<h5 id="npm-prefix"><a href="#npm-prefix" class="headerlink" title="npm prefix"></a>npm prefix</h5><p>这还算是一个比较重要的部分，因为上面的<code>node-cmd</code> 是相对于文件的当前路径来的，所以需要通过<code>prefix</code> 将npm命令执行的目录重新指向项目的目录</p>
+<p>嗯 先执行 <code>cd $projectdir</code> 是没有效果的，不要问我怎么知道的orz</p>
+<h5 id="邮件服务"><a href="#邮件服务" class="headerlink" title="邮件服务"></a>邮件服务</h5><p>邮件服务是为了通知最后这个脚本执行的结果，包括失败或成功以及相对应的日志信息，方便debug～</p>
+<h3 id="最后的最后"><a href="#最后的最后" class="headerlink" title="最后的最后"></a>最后的最后</h3><p>当这一套都部署完之后，每次需要发版的改动完成之后，只需要执行即可升级到对应的版</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">npm version patch #0.0.1的版本变动</span><br><span class="line">npm version minor #0.1.0的版本变动</span><br><span class="line">npm version major #1.0.0的版本变动</span><br></pre></td></tr></table></figure>
+<p>然后美滋滋的<code>git push</code> 之后发现并没有触发webhooks。。</p>
+<p>我的天，到底发生了什么？？？ 啊哈，原来是<code>git</code> 在push的时候默认不会push新增的tag，所以…</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git config --global push.followTags true</span><br></pre></td></tr></table></figure>
+<p>酱紫后每次只需要<code>git push</code> 之后就可以坐等发布成功的邮件通知啦～</p>
+<p><strong>未知bug：</strong> 偶尔的情况下，码云在<code>tag push</code> 后发送POST请求的时候会出现<code>excution expire</code>错误，还木有来得及找原因～</p>
+<h3 id="REF"><a href="#REF" class="headerlink" title="REF"></a>REF</h3><ul>
+<li><a href="https://gitee.com/help/categories/40" target="_blank" rel="noopener">码云WebHooks</a></li>
+<li><a href="https://codeday.me/bug/20170523/19134.html" target="_blank" rel="noopener">npm prefix</a></li>
+<li><a href="https://stackoverflow.com/questions/3745135/push-git-commits-tags-simultaneously" target="_blank" rel="noopener">git tag push</a></li>
+</ul>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/webhooks/" rel="tag"># webhooks</a>
+          
+            <a href="/tags/npm/" rel="tag"># npm</a>
+          
+            <a href="/tags/git/" rel="tag"># git</a>
+          
+            <a href="/tags/CI/" rel="tag"># CI</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/12/22/vue-default-image/" rel="next" title="vue默认图片">
+                <i class="fa fa-chevron-left"></i> vue默认图片
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/12/27/implementing-timed-tasks-with-redis/" rel="prev" title="使用redis有序集合实现定时任务">
+                使用redis有序集合实现定时任务 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="disqus_thread">
+        <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+      </div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/uploads/avatar.png" alt="Neail">
+            
+              <p class="site-author-name" itemprop="name">Neail</p>
+              <p class="site-description motion-element" itemprop="description">Everything will be ok.</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">10</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">5</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">27</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#WebHooks"><span class="nav-number">1.</span> <span class="nav-text">WebHooks?</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#处理POST请求"><span class="nav-number">2.</span> <span class="nav-text">处理POST请求</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#脚本文件"><span class="nav-number">3.</span> <span class="nav-text">脚本文件</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#shell脚本"><span class="nav-number">3.1.</span> <span class="nav-text">shell脚本</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#JS脚本"><span class="nav-number">3.2.</span> <span class="nav-text">JS脚本</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#node-mkdirp"><span class="nav-number">3.2.1.</span> <span class="nav-text">node-mkdirp</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#simple-git"><span class="nav-number">3.2.2.</span> <span class="nav-text">simple-git</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#node-cmd"><span class="nav-number">3.2.3.</span> <span class="nav-text">node-cmd</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#npm-prefix"><span class="nav-number">3.2.4.</span> <span class="nav-text">npm prefix</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#邮件服务"><span class="nav-number">3.2.5.</span> <span class="nav-text">邮件服务</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#最后的最后"><span class="nav-number">4.</span> <span class="nav-text">最后的最后</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#REF"><span class="nav-number">5.</span> <span class="nav-text">REF</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Neail</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+  
+  <script src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+  
+    <script id="dsq-count-scr" src="https://neailblog.disqus.com/count.js" async></script>
+  
+
+  
+    <script>
+      var disqus_config = function () {
+        this.page.url = "https://blog.neail.xyz/2018/12/26/use-webhook-to-build-automatically/";
+        this.page.identifier = "2018/12/26/use-webhook-to-build-automatically/";
+        this.page.title = '使用WebHooks实现自动构建';
+        };
+      function loadComments () {
+        var d = document, s = d.createElement('script');
+        s.src = 'https://neailblog.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      }
+      
+        $(function () {
+          var offsetTop = $('#comments').offset().top - $(window).height();
+          if (offsetTop <= 0) {
+            // load directly when there's no a scrollbar
+            loadComments();
+          } else {
+            $(window).on('scroll.disqus_scroll', function () {
+              // offsetTop may changes because of manually resizing browser window or lazy loading images.
+              var offsetTop = $('#comments').offset().top - $(window).height();
+              var scrollTop = $(window).scrollTop();
+
+              // pre-load comments a bit? (margin or anything else)
+              if (offsetTop - scrollTop < 60) {
+                $(window).off('.disqus_scroll');
+                loadComments();
+              }
+            });
+          }
+        });
+      
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.6.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=6.6.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=6.6.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.6.0" color="#222">
+
+
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '6.6.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="最近在开发nest.js遇到了实现诸如日志中间件、session中间件的需求。Nest.js是基于express的实现的，而express的中间件模式是直线型，koa的是洋葱圈型，所以在koa上有些很容易实现的功能比如记录获得处理时间在express上要实现就比较麻烦。所以在这边总结几种在Nest.js上实现的方法。">
+<meta name="keywords" content="node,nest.js,express,middleware">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Nest.js中间件踩坑">
+<meta property="og:url" content="https://blog.neail.xyz/2019/03/14/nestjs-middleware/index.html">
+<meta property="og:site_name" content="Neail&#39;s island">
+<meta property="og:description" content="最近在开发nest.js遇到了实现诸如日志中间件、session中间件的需求。Nest.js是基于express的实现的，而express的中间件模式是直线型，koa的是洋葱圈型，所以在koa上有些很容易实现的功能比如记录获得处理时间在express上要实现就比较麻烦。所以在这边总结几种在Nest.js上实现的方法。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://blog.neail.xyz/uploads/koa-middleware-model.png">
+<meta property="og:image" content="https://blog.neail.xyz/uploads/nest-pipe-filter.png">
+<meta property="og:image" content="https://blog.neail.xyz/uploads/nest-interceptor.png">
+<meta property="og:updated_time" content="2019-12-06T11:50:52.069Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Nest.js中间件踩坑">
+<meta name="twitter:description" content="最近在开发nest.js遇到了实现诸如日志中间件、session中间件的需求。Nest.js是基于express的实现的，而express的中间件模式是直线型，koa的是洋葱圈型，所以在koa上有些很容易实现的功能比如记录获得处理时间在express上要实现就比较麻烦。所以在这边总结几种在Nest.js上实现的方法。">
+<meta name="twitter:image" content="https://blog.neail.xyz/uploads/koa-middleware-model.png">
+
+
+
+
+
+
+  <link rel="canonical" href="https://blog.neail.xyz/2019/03/14/nestjs-middleware/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>Nest.js中间件踩坑 | Neail's island</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion .logo-line-before i { left: initial; }
+    .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Neail's island</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="https://blog.neail.xyz/2019/03/14/nestjs-middleware/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Neail">
+      <meta itemprop="description" content="Everything will be ok.">
+      <meta itemprop="image" content="/uploads/avatar.png">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Neail's island">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Nest.js中间件踩坑
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-03-14 18:05:23" itemprop="dateCreated datePublished" datetime="2019-03-14T18:05:23+08:00">2019-03-14</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2019-12-06 19:50:52" itemprop="dateModified" datetime="2019-12-06T19:50:52+08:00">2019-12-06</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing"><a href="/categories/node/" itemprop="url" rel="index"><span itemprop="name">node</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2019/03/14/nestjs-middleware/#comments" itemprop="discussionUrl">
+                
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2019/03/14/nestjs-middleware/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>最近在开发nest.js遇到了实现诸如日志中间件、session中间件的需求。Nest.js是基于express的实现的，而express的中间件模式是直线型，koa的是洋葱圈型，所以在koa上有些很容易实现的功能比如记录获得处理时间在express上要实现就比较麻烦。所以在这边总结几种在Nest.js上实现的方法。</p>
+<a id="more"></a>
+<h3 id="koa与express中间件模式对比"><a href="#koa与express中间件模式对比" class="headerlink" title="koa与express中间件模式对比"></a>koa与express中间件模式对比</h3><h4 id="koa的洋葱圈型"><a href="#koa的洋葱圈型" class="headerlink" title="koa的洋葱圈型"></a>koa的洋葱圈型</h4><p>我们先来看一段代码</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> Koa = <span class="built_in">require</span>(<span class="string">'koa'</span>)</span><br><span class="line"><span class="keyword">const</span> Router = <span class="built_in">require</span>(<span class="string">'koa-router'</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> app = <span class="keyword">new</span> Koa()</span><br><span class="line"><span class="keyword">const</span> router = <span class="keyword">new</span> Router()</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> printMiddlerware = <span class="keyword">async</span> (ctx, next) =&gt; &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">'before'</span>)</span><br><span class="line">  <span class="keyword">await</span> next()</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">'after'</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> sleep = <span class="function"><span class="params">seconds</span> =&gt;</span> <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function"><span class="params">resolve</span> =&gt;</span> setTimeout(<span class="function"><span class="params">()</span> =&gt;</span> resolve(), seconds * <span class="number">1000</span>))</span><br><span class="line"></span><br><span class="line">app.use(printMiddlerware)</span><br><span class="line"></span><br><span class="line">router.get(<span class="string">'/'</span>, <span class="keyword">async</span> ctx =&gt; &#123;</span><br><span class="line">  <span class="keyword">await</span> sleep(<span class="number">3</span>)</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">'route handle'</span>)</span><br><span class="line">  ctx.body = <span class="string">'success'</span></span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">app.use(router.routes())</span><br><span class="line">app.use(router.allowedMethods())</span><br><span class="line"></span><br><span class="line">app.listen(<span class="number">3000</span>)</span><br></pre></td></tr></table></figure>
+<p>当我们启动服务并访问的时候，会在控制台中打印一下内容：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ node index.js       </span><br><span class="line">before</span><br><span class="line">// sleep 3 seconds</span><br><span class="line">route handle</span><br><span class="line">after</span><br></pre></td></tr></table></figure>
+<p>可以看出，在进入<code>printMiddleware</code>后，先执行了<code>await next()</code>上面的代码，在执行到<code>await next()</code>的时候，进入到了<code>router</code>的处理部分，当<code>router</code>处理完之后，又回到了<code>printMiddle</code>中，继续执行<code>await next()</code>后面的部分。借鉴一张网上的图片：</p>
+<p><img src="/uploads/koa-middleware-model.png" alt=""></p>
+<h4 id="express的直线性模型"><a href="#express的直线性模型" class="headerlink" title="express的直线性模型"></a>express的直线性模型</h4><p>先看一段代码</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> express = <span class="built_in">require</span>(<span class="string">'express'</span>)</span><br><span class="line"><span class="keyword">const</span> app = <span class="keyword">new</span> express()</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> printMiddlerware = <span class="keyword">async</span> (req, res, next) =&gt; &#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">'before'</span>)</span><br><span class="line">  <span class="keyword">await</span> next()</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">'after'</span>)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> sleep = <span class="function"><span class="params">seconds</span> =&gt;</span> <span class="keyword">new</span> <span class="built_in">Promise</span>(<span class="function"><span class="params">resolve</span> =&gt;</span> setTimeout(<span class="function"><span class="params">()</span> =&gt;</span> resolve(), seconds * <span class="number">1000</span>))</span><br><span class="line"></span><br><span class="line">app.use(printMiddlerware)</span><br><span class="line"></span><br><span class="line">app.get(<span class="string">'/'</span>, <span class="keyword">async</span> (req, res) =&gt; &#123;</span><br><span class="line">  <span class="keyword">await</span> sleep(<span class="number">3</span>)</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">'route handle'</span>)</span><br><span class="line">  res.send(<span class="string">'success'</span>)</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">app.listen(<span class="number">3000</span>)</span><br></pre></td></tr></table></figure>
+<p>启动并访问，打印出的日志如下</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ node index.js                      </span><br><span class="line">before</span><br><span class="line">after</span><br><span class="line">// sleep 3 seconds</span><br><span class="line">route handle</span><br></pre></td></tr></table></figure>
+<p>可以看出，在<code>express</code>中，中间件是由上到下执行的，<code>next</code>之后继续寻找下一个中间件执行，所以说<code>express</code>的中间件模型是直线型的。</p>
+<h3 id="Nest-js框架提供的中间件"><a href="#Nest-js框架提供的中间件" class="headerlink" title="Nest.js框架提供的中间件"></a>Nest.js框架提供的中间件</h3><h4 id="实现形式"><a href="#实现形式" class="headerlink" title="实现形式"></a>实现形式</h4><p>Nest 中间件可以是一个函数，也可以是一个带有 <code>@Injectable()</code> 装饰器的类。实际上这个类里面的实现的<code>resolve</code>方法最终还是返回了一个常规中间件函数。</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 类式中间件</span></span><br><span class="line"><span class="keyword">import</span> &#123; Injectable, NestMiddleware, MiddlewareFunction, Inject, forwardRef &#125; <span class="keyword">from</span> <span class="string">'@nestjs/common'</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; IndexService &#125; <span class="keyword">from</span> <span class="string">'./graphql/index/index.service'</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Injectable</span>()</span><br><span class="line"><span class="keyword">export</span> <span class="keyword">class</span> LoggerMiddleware <span class="keyword">implements</span> NestMiddleware &#123;</span><br><span class="line">  <span class="keyword">constructor</span>(<span class="params"></span></span><br><span class="line"><span class="params">    <span class="meta">@Inject</span>(forwardRef(() =&gt; IndexService))  <span class="comment">// 依赖注入</span></span></span><br><span class="line"><span class="params">    <span class="keyword">private</span> readonly indexService: IndexService,</span></span><br><span class="line"><span class="params">  </span>) &#123;&#125;</span><br><span class="line">  resolve(...args: <span class="built_in">any</span>[]): MiddlewareFunction &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="function">(<span class="params">req, res, next</span>) =&gt;</span> &#123; <span class="comment">// 实际还是一个中间件函数</span></span><br><span class="line">      <span class="built_in">console</span>.log(<span class="string">'Request...'</span>);</span><br><span class="line">      next();</span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 函数式中间件</span></span><br><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">logger</span>(<span class="params">req, res, next</span>) </span>&#123;</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="string">'Request...'</span>);</span><br><span class="line">  next();</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>不过相较于函数式中间件，使用类的一个优势就是可以通过依赖注入的方法注入属于同一模块的依赖项。</p>
+<h4 id="使用方法"><a href="#使用方法" class="headerlink" title="使用方法"></a>使用方法</h4><p>中间件的使用方法也有两种：一种是使用模块类的 <code>configure()</code> 方法；一种是使利用实例 <code>INestApplication</code> 提供的<code>use()</code>方法 。但是需要注意的是，如果是使用<code>use()</code>，只能使用函数式中间件</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 使用模块类的configure方法</span></span><br><span class="line"><span class="keyword">import</span> &#123; Module, NestModule, MiddlewareConsumer &#125; <span class="keyword">from</span> <span class="string">'@nestjs/common'</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; LoggerMiddleware &#125; <span class="keyword">from</span> <span class="string">'./common/middlewares/logger.middleware'</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; CatsModule &#125; <span class="keyword">from</span> <span class="string">'./cats/cats.module'</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Module</span>(&#123;</span><br><span class="line">  imports: [CatsModule],</span><br><span class="line">&#125;)</span><br><span class="line"><span class="keyword">export</span> <span class="keyword">class</span> ApplicationModule <span class="keyword">implements</span> NestModule &#123;</span><br><span class="line">  configure(consumer: MiddlewareConsumer) &#123;</span><br><span class="line">    consumer</span><br><span class="line">      .apply(LoggerMiddleware)</span><br><span class="line">      .forRoutes(<span class="string">'/cats'</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 使用INestApplication实例的use方法</span></span><br><span class="line"><span class="keyword">const</span> app = <span class="keyword">await</span> NestFactory.create(ApplicationModule);</span><br><span class="line">app.use(logger);</span><br><span class="line"><span class="keyword">await</span> app.listen(<span class="number">3000</span>);</span><br></pre></td></tr></table></figure>
+<h3 id="日志中间件示例"><a href="#日志中间件示例" class="headerlink" title="日志中间件示例"></a>日志中间件示例</h3><p>好了，说了那么多的废话，现在来实现一个日志中间件。由于类式中间件相比函数式中间件更强大，所以这边使用类式中间件。</p>
+<p>假定一个需求，需要记录下每个路由处理所需要的时间，如果在<code>koa</code>中的话，大概是这样的：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">module</span>.exports = <span class="keyword">async</span> (ctx, next) =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> startTime = <span class="built_in">Date</span>.now()</span><br><span class="line">  <span class="keyword">await</span> next()</span><br><span class="line">  <span class="keyword">const</span> endTime = <span class="built_in">Date</span>.now()</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="built_in">JSON</span>.stringify(&#123;</span><br><span class="line">    startTime,</span><br><span class="line">    endTime,</span><br><span class="line">    runTime: endTime - startTime</span><br><span class="line">  &#125;))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>是不是很简单？是不是很容易理解？然鹅，由于Nest是基于express的，所以不能享受koa中洋葱圈中间件所带来的便利。有个解决办法就是使用中间件把业务路由包裹起来，像这样：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> express = <span class="built_in">require</span>(<span class="string">'express'</span>)</span><br><span class="line"><span class="keyword">const</span> app = <span class="keyword">new</span> express()</span><br><span class="line"></span><br><span class="line">app.use(<span class="function">(<span class="params">req, res, next</span>) =&gt;</span> &#123;</span><br><span class="line">  req.startTime = <span class="built_in">Date</span>.now()</span><br><span class="line">  next()</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">app.get(<span class="string">'/'</span>, (req, res, next) =&gt; &#123;</span><br><span class="line">  res.send(<span class="string">'hello'</span>)</span><br><span class="line">  next()</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">app.use(<span class="function">(<span class="params">req, res, next</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> startTime = req.startTime</span><br><span class="line">  <span class="keyword">const</span> endTime = <span class="built_in">Date</span>.now()</span><br><span class="line">  <span class="built_in">console</span>.log(<span class="built_in">JSON</span>.stringify(&#123;</span><br><span class="line">    startTime,</span><br><span class="line">    endTime,</span><br><span class="line">    runTime: endTime - startTime</span><br><span class="line">  &#125;))</span><br><span class="line">  next()</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">app.listen( <span class="number">8888</span> )</span><br></pre></td></tr></table></figure>
+<p>但是，这样写其实是存在问题的：</p>
+<ul>
+<li>路由处理完后继续<code>next()</code>会走到最后的404的错误处理的中间件中</li>
+<li>Nest框架中没有这样一个地方放中间件。额…场面一度十分尴尬…</li>
+</ul>
+<p>其实也不是没有办法来解决，比方说就可以通过改写<code>res.end</code>方法，想出这个方法的人也是蛮厉害的了。</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> loggerMiddlerware = <span class="function">(<span class="params">req, res, next</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> startTime = <span class="built_in">Date</span>.now()</span><br><span class="line">  <span class="keyword">const</span> _end = res.end</span><br><span class="line">  res.end = <span class="function"><span class="keyword">function</span> <span class="title">end</span>(<span class="params">...rest</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">const</span> endTime = <span class="built_in">Date</span>.now()</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="built_in">JSON</span>.stringify(&#123;</span><br><span class="line">      startTime,</span><br><span class="line">      endTime,</span><br><span class="line">      runTime: endTime - startTime</span><br><span class="line">    &#125;))</span><br><span class="line">    _end.apply(res, rest)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="使用Nest的拦截器实现一个伪中间件"><a href="#使用Nest的拦截器实现一个伪中间件" class="headerlink" title="使用Nest的拦截器实现一个伪中间件"></a>使用Nest的拦截器实现一个伪中间件</h3><p>Nest框架还提供了管道、过滤器、拦截器等</p>
+<ul>
+<li>管道用于在路由之前验证或转换客户端传来的数据</li>
+<li>过滤器一般放在处理链条的最后，用来处理整个应用程序中的所有抛出的异常</li>
+<li>拦截器可以在函数执行之前/之后绑定额外的逻辑</li>
+</ul>
+<p><img src="/uploads/nest-pipe-filter.png" alt="管道和过滤器"></p>
+<p><img src="/uploads/nest-interceptor.png" alt="拦截器"></p>
+<p>从上图可以看出，拦截器也是能充当中间件，实现日志中间件的需求，我们来实现一个日志拦截器：</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// logger.interceptor.ts</span></span><br><span class="line"><span class="keyword">import</span> &#123; Injectable, NestInterceptor, ExecutionContext &#125; <span class="keyword">from</span> <span class="string">'@nestjs/common'</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; Observable &#125; <span class="keyword">from</span> <span class="string">'rxjs'</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; tap &#125; <span class="keyword">from</span> <span class="string">'rxjs/operators'</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Injectable</span>()</span><br><span class="line"><span class="keyword">export</span> <span class="keyword">class</span> LoggerInterceptor <span class="keyword">implements</span> NestInterceptor &#123;</span><br><span class="line">  <span class="keyword">async</span> intercept(context: ExecutionContext, call$: Observable&lt;<span class="built_in">any</span>&gt;)&#123;</span><br><span class="line">    <span class="keyword">const</span> startTime = <span class="built_in">Date</span>.now();</span><br><span class="line">    <span class="keyword">return</span> call$.pipe(</span><br><span class="line">      tap(<span class="function"><span class="params">()</span> =&gt;</span> &#123;</span><br><span class="line">        <span class="keyword">const</span> endTime = <span class="built_in">Date</span>.now();</span><br><span class="line">        <span class="built_in">console</span>.log(<span class="built_in">JSON</span>.stringify(&#123;</span><br><span class="line">          startTime,</span><br><span class="line">          endTime,</span><br><span class="line">          runTime: endTime - startTime,</span><br><span class="line">        &#125;));</span><br><span class="line">      &#125;),</span><br><span class="line">    );</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>最后在根模块中全局使用它：</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// app.module.ts</span></span><br><span class="line"><span class="keyword">import</span> &#123; LoggerInterceptor &#125; <span class="keyword">from</span> <span class="string">'./logger.interceptor'</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; Module &#125; <span class="keyword">from</span> <span class="string">'@nestjs/common'</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; APP_INTERCEPTOR &#125; <span class="keyword">from</span> <span class="string">'@nestjs/core'</span>;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Module</span>(&#123;</span><br><span class="line">  providers: [&#123;</span><br><span class="line">    provide: APP_INTERCEPTOR,</span><br><span class="line">    useClass: LoggerInterceptor,</span><br><span class="line">  &#125;],</span><br><span class="line">&#125;)</span><br><span class="line"><span class="keyword">export</span> <span class="keyword">class</span> AppModule &#123;&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="当遇上GraphQLModule"><a href="#当遇上GraphQLModule" class="headerlink" title="当遇上GraphQLModule"></a>当遇上<code>GraphQLModule</code></h3><p>作为一个强迫症，你觉得使用拦截器比hack<code>res.end</code>更优雅，于是把所有需要hack的中间件都换成了拦截器并提交了代码。这时候，boss过来又提了个需求：把返回给用户的数据也打印到日志里。</p>
+<p>你觉得这只是个小case，可是现实却狠狠的扇了你一巴掌：拦截器获得的数据是没有经过ApolloServer处理过的，也就是说打印出来的数据不是用户最终获得的数据。</p>
+<p>最后通过研究<code>GraphQLModule</code>和<code>apollo-server-express</code>的源码发现，ApolloServer是通过中间件的形式来处理返回数据的，而拦截器的是处在路由函数和中间件函数之间的，嗯..一夜回到解放前。</p>
+<p>最后还是回到了中间件，通过<code>res.write</code>方法拿到<code>response.body</code></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> loggerMiddlerware = <span class="function">(<span class="params">req, res, next</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">const</span> startTime = <span class="built_in">Date</span>.now()</span><br><span class="line">  <span class="keyword">const</span> _end = res.end</span><br><span class="line">  <span class="keyword">const</span> _write = res.write</span><br><span class="line">  <span class="keyword">const</span> chunks = []</span><br><span class="line">  res.write = <span class="function">(<span class="params">...restArgs</span>) =&gt;</span> &#123;</span><br><span class="line">    chunks.push(<span class="keyword">new</span> Buffer(restArgs[<span class="number">0</span>]));</span><br><span class="line">    _write.apply(res, restArgs);</span><br><span class="line">  &#125;;</span><br><span class="line">  res.end = <span class="function"><span class="keyword">function</span> <span class="title">end</span>(<span class="params">...rest</span>) </span>&#123;</span><br><span class="line">    <span class="keyword">const</span> body = Buffer.concat(chunks).toString(<span class="string">'utf8'</span>);</span><br><span class="line">    <span class="keyword">const</span> endTime = <span class="built_in">Date</span>.now()</span><br><span class="line">    <span class="built_in">console</span>.log(<span class="built_in">JSON</span>.stringify(&#123;</span><br><span class="line">      startTime,</span><br><span class="line">      endTime,</span><br><span class="line">      runTime: endTime - startTime,</span><br><span class="line">      responseBody: body</span><br><span class="line">    &#125;))</span><br><span class="line">    _end.apply(res, rest)</span><br><span class="line">  &#125;</span><br><span class="line">  next()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="参考文档"><a href="#参考文档" class="headerlink" title="参考文档"></a>参考文档</h3><ul>
+<li><a href="https://juejin.im/post/59881640f265da3e154b0509" target="_blank" rel="noopener">Express 与 koa 中间件模式对比</a></li>
+<li><a href="https://docs.nestjs.cn/5.0/middlewares" target="_blank" rel="noopener">Nest.js中间件</a></li>
+<li><p><a href="https://stackoverflow.com/questions/24258782/node-express-4-middleware-after-routes" target="_blank" rel="noopener">express-middleware-after-routes</a></p>
+</li>
+<li><p><a href="https://stackoverflow.com/questions/19215042/express-logging-response-body" target="_blank" rel="noopener">express-logging-response-body</a></p>
+</li>
+</ul>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/node/" rel="tag"># node</a>
+          
+            <a href="/tags/nest-js/" rel="tag"># nest.js</a>
+          
+            <a href="/tags/express/" rel="tag"># express</a>
+          
+            <a href="/tags/middleware/" rel="tag"># middleware</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/01/26/deploy-vue-project-with-nginx/" rel="next" title="使用nginx部署vue项目">
+                <i class="fa fa-chevron-left"></i> 使用nginx部署vue项目
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/08/10/use-es6-import-in-node/" rel="prev" title="在Node中使用ES6 import/export">
+                在Node中使用ES6 import/export <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="disqus_thread">
+        <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+      </div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/uploads/avatar.png" alt="Neail">
+            
+              <p class="site-author-name" itemprop="name">Neail</p>
+              <p class="site-description motion-element" itemprop="description">Everything will be ok.</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">10</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">5</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">27</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#koa与express中间件模式对比"><span class="nav-number">1.</span> <span class="nav-text">koa与express中间件模式对比</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#koa的洋葱圈型"><span class="nav-number">1.1.</span> <span class="nav-text">koa的洋葱圈型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#express的直线性模型"><span class="nav-number">1.2.</span> <span class="nav-text">express的直线性模型</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Nest-js框架提供的中间件"><span class="nav-number">2.</span> <span class="nav-text">Nest.js框架提供的中间件</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#实现形式"><span class="nav-number">2.1.</span> <span class="nav-text">实现形式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#使用方法"><span class="nav-number">2.2.</span> <span class="nav-text">使用方法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#日志中间件示例"><span class="nav-number">3.</span> <span class="nav-text">日志中间件示例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用Nest的拦截器实现一个伪中间件"><span class="nav-number">4.</span> <span class="nav-text">使用Nest的拦截器实现一个伪中间件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#当遇上GraphQLModule"><span class="nav-number">5.</span> <span class="nav-text">当遇上GraphQLModule</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考文档"><span class="nav-number">6.</span> <span class="nav-text">参考文档</span></a></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Neail</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v6.6.0</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script src="/js/src/utils.js?v=6.6.0"></script>
+
+  <script src="/js/src/motion.js?v=6.6.0"></script>
+
+
+
+  
+  
+
+  
+  <script src="/js/src/scrollspy.js?v=6.6.0"></script>
+<script src="/js/src/post-details.js?v=6.6.0"></script>
+
+
+
+  
+
+
+  <script src="/js/src/bootstrap.js?v=6.6.0"></script>
+
+
+
+  
+
+  
+    <script id="dsq-count-scr" src="https://neailblog.disqus.com/count.js" async></script>
+  
+
+  
+    <script>
+      var disqus_config = function () {
+        this.page.url = "https://blog.neail.xyz/2019/03/14/nestjs-middleware/";
+        this.page.identifier = "2019/03/14/nestjs-middleware/";
+        this.page.title = 'Nest.js中间件踩坑';
+        };
+      function loadComments () {
+        var d = document, s = d.createElement('script');
+        s.src = 'https://neailblog.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', '' + +new Date());
+        (d.head || d.body).appendChild(s);
+      }
+      
+        $(function () {
+          var offsetTop = $('#comments').offset().top - $(window).height();
+          if (offsetTop <= 0) {
+            // load directly when there's no a scrollbar
+            loadComments();
+          } else {
+            $(window).on('scroll.disqus_scroll', function () {
+              // offsetTop may changes because of manually resizing browser window or lazy loading images.
+              var offsetTop = $('#comments').offset().top - $(window).height();
+              var scrollTop = $(window).scrollTop();
+
+              // pre-load comments a bit? (margin or anything else)
+              if (offsetTop - scrollTop < 60) {
+                $(window).off('.disqus_scroll');
+                loadComments();
+              }
+            });
+          }
+        });
+      
+    </script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
